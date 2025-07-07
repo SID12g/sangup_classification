@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSV Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+          "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        background-color: #ffffff;
+        color: #374151;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      .header {
+        padding: 64px 0 48px 0;
+        text-align: center;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 8px;
+        letter-spacing: -0.025em;
+      }
+
+      .csv-links {
+        padding: 48px 0;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .csv-links a {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 20px;
+        background-color: #ffffff;
+        color: #374151;
+        text-decoration: none;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      }
+
+      .csv-links a:hover {
+        background-color: #f9fafb;
+        border-color: #9ca3af;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .content {
+        padding: 48px 0;
+        padding-top: 0;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      }
+
+      th,
+      td {
+        border: none;
+        padding: 16px 20px;
+        text-align: left;
+        border-bottom: 1px solid #f3f4f6;
+      }
+
+      th {
+        background-color: #f9fafb;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tr:hover {
+        background-color: #f9fafb;
+      }
+
+      .error-message {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 16px 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin: 24px 0;
+        font-size: 0.875rem;
+      }
+
+      .info-message {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+        padding: 16px 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin: 24px 0;
+        font-size: 0.875rem;
+      }
+
+      .chapters-overview {
+        margin-top: 48px;
+      }
+
+      .chapter-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+          0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        transition: all 0.15s ease;
+      }
+
+      .chapter-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 16px;
+        }
+
+        .header {
+          padding: 48px 0 32px 0;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .csv-links {
+          padding: 32px 0;
+          gap: 12px;
+        }
+
+        .csv-links a {
+          padding: 10px 16px;
+          font-size: 0.8rem;
+        }
+
+        .content {
+          padding: 32px 0;
+        }
+
+        th,
+        td {
+          padding: 12px 16px;
+          font-size: 0.875rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <a style="text-decoration: none; color: inherit" href="/"
+          ><h1>상업경제 기출 DB</h1></a
+        >
+      </div>
+
+      <div class="csv-links">
+        <a href="?csv=1.csv">Chapter 01</a>
+        <a href="?csv=2.csv">Chapter 02</a>
+        <a href="?csv=3.csv">Chapter 03</a>
+        <a href="?csv=4.csv">Chapter 04</a>
+      </div>
+
+      <div class="content">
+        <div id="csv-table"></div>
+
+        <div class="chapters-overview">
+          <h2
+            style="
+              margin-bottom: 24px;
+              color: #111827;
+              font-size: 1.5rem;
+              font-weight: 600;
+            "
+          >
+            커리큘럼 개요
+          </h2>
+
+          <div class="chapter-card">
+            <h3
+              style="
+                color: #374151;
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #e5e7eb;
+              "
+            >
+              CHAPTER 01 상업 활동
+            </h3>
+            <ul style="list-style: none; padding: 0; margin: 0">
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_1 상업의 중요성
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_2 산업 구조, 경제 발전과 환경
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_3 매매 활동과 지급 수단 (어음)
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_4 유통 관리
+              </li>
+            </ul>
+          </div>
+
+          <div class="chapter-card">
+            <h3
+              style="
+                color: #374151;
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #e5e7eb;
+              "
+            >
+              CHAPTER 02 기업 활동
+            </h3>
+            <ul style="list-style: none; padding: 0; margin: 0">
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_1 기업 역할과 분류
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_2 경영 관리
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_3 기업의 부문별 활동과 경영 혁신
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_4 마케팅
+              </li>
+            </ul>
+          </div>
+
+          <div class="chapter-card">
+            <h3
+              style="
+                color: #374151;
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #e5e7eb;
+              "
+            >
+              CHAPTER 03 금융의 기능과 종류
+            </h3>
+            <ul style="list-style: none; padding: 0; margin: 0">
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_1 금융 시장의 종류와 한국 은행
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_2 은행 업무와 보험 업무
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_3 증권 업무
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_4 국제 금융과 환율
+              </li>
+            </ul>
+          </div>
+
+          <div class="chapter-card">
+            <h3
+              style="
+                color: #374151;
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin-bottom: 16px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #e5e7eb;
+              "
+            >
+              CHAPTER 04 무역 활동
+            </h3>
+            <ul style="list-style: none; padding: 0; margin: 0">
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_1 물류 관리
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_2 무역의 이해
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_3 무역의 계약 조건
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_4 무역의 수출입 절차
+              </li>
+              <li style="padding: 8px 0; color: #6b7280; font-size: 0.9rem">
+                • THEME_5 세계 경제 환경
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function parseCsvRow(rowString) {
+        const cells = [];
+        let currentPos = 0;
+
+        // First column (unquoted)
+        const firstComma = rowString.indexOf(",");
+        if (firstComma === -1) {
+          return [rowString];
+        }
+        cells.push(rowString.substring(0, firstComma));
+        currentPos = firstComma + 1;
+
+        // Other columns (quoted)
+        while (currentPos < rowString.length) {
+          if (rowString[currentPos] === '"') {
+            let endQuote = -1;
+            let searchPos = currentPos + 1;
+            while (endQuote === -1) {
+              const nextQuote = rowString.indexOf('"', searchPos);
+              if (nextQuote === -1) {
+                // Malformed, no closing quote
+                endQuote = rowString.length;
+              } else if (rowString[nextQuote + 1] === '"') {
+                // Escaped quote
+                searchPos = nextQuote + 2;
+              } else {
+                endQuote = nextQuote;
+              }
+            }
+            cells.push(
+              rowString.substring(currentPos + 1, endQuote).replace(/""/g, '"')
+            );
+            currentPos = endQuote + 2; // Move past quote and comma
+          } else {
+            // Fallback for unquoted values, though not expected in this format
+            const nextComma = rowString.indexOf(",", currentPos);
+            if (nextComma === -1) {
+              cells.push(rowString.substring(currentPos));
+              currentPos = rowString.length;
+            } else {
+              cells.push(rowString.substring(currentPos, nextComma));
+              currentPos = nextComma + 1;
+            }
+          }
+        }
+        return cells;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const csvFile = urlParams.get("csv");
+
+        if (csvFile) {
+          fetch(csvFile)
+            .then((response) => response.text())
+            .then((data) => {
+              const table = document.createElement("table");
+              const rows = data.trim().split("\n");
+
+              // Create table header
+              const thead = document.createElement("thead");
+              const headerRow = document.createElement("tr");
+              const headers = rows[0].split(",");
+              headers.forEach((headerText) => {
+                const th = document.createElement("th");
+                th.textContent = headerText.replace(/"/g, "");
+                headerRow.appendChild(th);
+              });
+              thead.appendChild(headerRow);
+              table.appendChild(thead);
+
+              // Create table body
+              const tbody = document.createElement("tbody");
+              for (let i = 1; i < rows.length; i++) {
+                if (!rows[i]) continue;
+                const row = document.createElement("tr");
+                const cells = parseCsvRow(rows[i]);
+                cells.forEach((cellText) => {
+                  const td = document.createElement("td");
+                  td.textContent = cellText;
+                  row.appendChild(td);
+                });
+                tbody.appendChild(row);
+              }
+              table.appendChild(tbody);
+
+              const container = document.getElementById("csv-table");
+              container.innerHTML = "";
+              container.appendChild(table);
+            })
+            .catch((error) => {
+              console.error("Error fetching CSV file:", error);
+              document.getElementById(
+                "csv-table"
+              ).innerHTML = `<div class="error-message">Error loading ${csvFile}. Please make sure the file exists and is in the same directory as this HTML file.</div>`;
+            });
+        } else {
+          document.getElementById("csv-table").innerHTML =
+            '<div class="info-message">볼 CSV 파일을 지정하세요. 예를 들어 URL에 "?csv=1.csv"를 추가합니다.</div>';
+        }
+      });
+    </script>
+  </body>
+  <footer style="text-align: center; padding: 20px; font-size: 12px">
+    Copyright ⓒ 2025 sid12g All rights reserved.
+  </footer>
+</html>
