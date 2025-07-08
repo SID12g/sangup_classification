@@ -618,6 +618,11 @@
         const csvFile = urlParams.get("csv");
 
         if (csvFile) {
+          const statsSection = document.getElementById("statistics");
+          if (statsSection) {
+            statsSection.style.display = "none";
+          }
+
           loadCsvData(csvFile)
             .then(({ data }) => {
               allCsvData = data;
