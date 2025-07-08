@@ -360,14 +360,29 @@
       function analyzeData(csvData) {
         const rows = csvData.trim().split("\n");
         const headers = rows[0].split(",");
-        const data = rows.slice(1).map((row) => {
-          const cells = parseCsvRow(row);
-          return {
-            chapter: cells[0]?.replace(/"/g, ""),
-            theme: cells[1]?.replace(/"/g, ""),
-            problemNumber: cells[2]?.replace(/"/g, ""),
-            reason: cells[3]?.replace(/"/g, ""),
-          };
+        const data = rows.slice(1).map((row, index) => {
+          try {
+            const cells = parseCsvRow(row);
+            return {
+              chapter: cells[0]?.replace(/"/g, ""),
+              theme: cells[1]?.replace(/"/g, ""),
+              problemNumber: cells[2]?.replace(/"/g, ""),
+              reason: cells[3]?.replace(/"/g, ""),
+            };
+          } catch (error) {
+            console.log(
+              "Error parsing row in analyzeData:",
+              index + 2,
+              row,
+              error
+            );
+            return {
+              chapter: "",
+              theme: "",
+              problemNumber: "",
+              reason: "",
+            };
+          }
         });
 
         const chapterStats = {};
@@ -381,7 +396,6 @@
             const theme = item.theme.trim();
 
             chapterStats[chapter] = (chapterStats[chapter] || 0) + 1;
-            themeStats[theme] = (themeStats[theme] || 0) + 1;
 
             const combinedTheme = `${chapter} - ${theme}`;
             themeStats[combinedTheme] = (themeStats[combinedTheme] || 0) + 1;
@@ -407,15 +421,27 @@
         const allRows = allData.trim().split("\n").slice(1);
         const allProblems = new Set();
 
-        allRows.forEach((row) => {
+        console.log("All CSV rows count:", allRows.length);
+
+        allRows.forEach((row, index) => {
           if (row.trim()) {
-            const cells = parseCsvRow(row);
-            const problemNumber = cells[2]?.replace(/"/g, "").trim();
-            if (problemNumber) {
-              allProblems.add(problemNumber);
+            try {
+              const cells = parseCsvRow(row);
+              const problemNumber = cells[2]?.replace(/"/g, "").trim();
+              if (problemNumber) {
+                allProblems.add(problemNumber);
+              } else {
+                console.log("Row without problem number:", index + 2, row);
+                console.log("Parsed cells:", cells);
+              }
+            } catch (error) {
+              console.log("Error parsing row:", index + 2, row, error);
             }
           }
         });
+
+        console.log("All problems count:", allProblems.size);
+        console.log("All problems:", Array.from(allProblems).sort());
 
         const individualProblems = new Set();
         const missingInAll = [];
@@ -429,11 +455,20 @@
 
           rows.forEach((row) => {
             if (row.trim()) {
-              const cells = parseCsvRow(row);
-              const problemNumber = cells[2]?.replace(/"/g, "").trim();
-              if (problemNumber) {
-                csvProblems.push(problemNumber);
-                individualProblems.add(problemNumber);
+              try {
+                const cells = parseCsvRow(row);
+                const problemNumber = cells[2]?.replace(/"/g, "").trim();
+                if (problemNumber) {
+                  csvProblems.push(problemNumber);
+                  individualProblems.add(problemNumber);
+                }
+              } catch (error) {
+                console.log(
+                  "Error parsing individual CSV row:",
+                  csvNumber,
+                  row,
+                  error
+                );
               }
             }
           });
@@ -444,6 +479,12 @@
             problems: csvProblems,
           });
         });
+
+        console.log("Individual problems count:", individualProblems.size);
+        console.log(
+          "Individual problems:",
+          Array.from(individualProblems).sort()
+        );
 
         allProblems.forEach((problem) => {
           if (!individualProblems.has(problem)) {
