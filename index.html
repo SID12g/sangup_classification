@@ -113,6 +113,30 @@
         background-color: #f9fafb;
       }
 
+      .priority-1 {
+        background-color: #fef2f2;
+      }
+
+      .priority-2 {
+        background-color: #fffbeb;
+      }
+
+      .priority-3 {
+        background-color: #ffffff;
+      }
+
+      .priority-1:hover {
+        background-color: #fee2e2;
+      }
+
+      .priority-2:hover {
+        background-color: #fef3c7;
+      }
+
+      .priority-3:hover {
+        background-color: #f9fafb;
+      }
+
       .error-message {
         background: #fef2f2;
         border: 1px solid #fecaca;
@@ -208,6 +232,157 @@
         <a href="?csv=all.csv">All</a>
       </div>
 
+      <div
+        class="filter-controls"
+        style="
+          margin: 32px 0;
+          padding: 24px;
+          background: #f9fafb;
+          border-radius: 8px;
+          border: 1px solid #e5e7eb;
+        "
+      >
+        <h3
+          style="
+            margin-bottom: 16px;
+            color: #374151;
+            font-size: 1.1rem;
+            font-weight: 600;
+          "
+        >
+          필터 옵션
+        </h3>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+          "
+        >
+          <div>
+            <label
+              style="
+                display: block;
+                margin-bottom: 8px;
+                color: #374151;
+                font-weight: 500;
+                font-size: 0.875rem;
+              "
+              >우선순위</label
+            >
+            <select
+              id="priority-filter"
+              style="
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                background: white;
+                font-size: 0.875rem;
+              "
+            >
+              <option value="">모든 우선순위</option>
+              <option value="1">Priority 1 (높음)</option>
+              <option value="2">Priority 2 (중간)</option>
+              <option value="3">Priority 3 (낮음)</option>
+            </select>
+          </div>
+          <div>
+            <label
+              style="
+                display: block;
+                margin-bottom: 8px;
+                color: #374151;
+                font-weight: 500;
+                font-size: 0.875rem;
+              "
+              >챕터</label
+            >
+            <select
+              id="chapter-filter"
+              style="
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                background: white;
+                font-size: 0.875rem;
+              "
+            >
+              <option value="">모든 챕터</option>
+            </select>
+          </div>
+          <div>
+            <label
+              style="
+                display: block;
+                margin-bottom: 8px;
+                color: #374151;
+                font-weight: 500;
+                font-size: 0.875rem;
+              "
+              >테마</label
+            >
+            <select
+              id="theme-filter"
+              style="
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                background: white;
+                font-size: 0.875rem;
+              "
+            >
+              <option value="">모든 테마</option>
+            </select>
+          </div>
+        </div>
+        <div
+          style="
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+          "
+        >
+          <button
+            id="apply-filter"
+            style="
+              padding: 8px 16px;
+              background: #3b82f6;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              font-weight: 500;
+              cursor: pointer;
+              font-size: 0.875rem;
+            "
+          >
+            필터 적용
+          </button>
+          <button
+            id="clear-filter"
+            style="
+              padding: 8px 16px;
+              background: #6b7280;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              font-weight: 500;
+              cursor: pointer;
+              font-size: 0.875rem;
+            "
+          >
+            필터 초기화
+          </button>
+          <span
+            id="filter-count"
+            style="color: #6b7280; font-size: 0.875rem"
+          ></span>
+        </div>
+      </div>
+
       <div class="content">
         <div id="csv-table"></div>
 
@@ -228,6 +403,10 @@
     </div>
 
     <script>
+      let allCsvData = [];
+      let filteredData = [];
+      let currentTable = null;
+
       function parseCsvRow(rowString) {
         const cells = [];
         let currentPos = 0;
@@ -276,48 +455,249 @@
         return cells;
       }
 
+      function loadCsvData(csvFile) {
+        return fetch(csvFile)
+          .then((response) => response.text())
+          .then((data) => {
+            const rows = data.trim().split("\n");
+            const headers = rows[0].split(",");
+            const parsedData = [];
+
+            for (let i = 1; i < rows.length; i++) {
+              if (!rows[i]) continue;
+              try {
+                const cells = parseCsvRow(rows[i]);
+                parsedData.push({
+                  chapter: cells[0]?.replace(/"/g, ""),
+                  theme: cells[1]?.replace(/"/g, ""),
+                  problemNumber: cells[2]?.replace(/"/g, ""),
+                  reason: cells[3]?.replace(/"/g, ""),
+                  priority: cells[4]?.replace(/"/g, ""),
+                  originalRow: rows[i],
+                });
+              } catch (error) {
+                console.error("Error parsing row:", i + 2, rows[i], error);
+              }
+            }
+
+            return { headers, data: parsedData };
+          });
+      }
+
+      function populateFilterOptions(data) {
+        const chapters = [
+          ...new Set(data.map((item) => item.chapter).filter(Boolean)),
+        ];
+        const themes = [
+          ...new Set(data.map((item) => item.theme).filter(Boolean)),
+        ];
+
+        const chapterFilter = document.getElementById("chapter-filter");
+        const themeFilter = document.getElementById("theme-filter");
+
+        chapterFilter.innerHTML = '<option value="">모든 챕터</option>';
+        chapters.forEach((chapter) => {
+          const option = document.createElement("option");
+          option.value = chapter;
+          option.textContent = chapter;
+          chapterFilter.appendChild(option);
+        });
+
+        themeFilter.innerHTML = '<option value="">모든 테마</option>';
+        themes.forEach((theme) => {
+          const option = document.createElement("option");
+          option.value = theme;
+          option.textContent = theme;
+          themeFilter.appendChild(option);
+        });
+      }
+
+      function applyFilters() {
+        const priorityFilter = document.getElementById("priority-filter").value;
+        const chapterFilter = document.getElementById("chapter-filter").value;
+        const themeFilter = document.getElementById("theme-filter").value;
+
+        filteredData = allCsvData.filter((item) => {
+          const priorityMatch =
+            !priorityFilter || item.priority === priorityFilter;
+          const chapterMatch = !chapterFilter || item.chapter === chapterFilter;
+          const themeMatch = !themeFilter || item.theme === themeFilter;
+
+          return priorityMatch && chapterMatch && themeMatch;
+        });
+
+        displayFilteredTable();
+        updateFilterCount();
+      }
+
+      function displayFilteredTable() {
+        const container = document.getElementById("csv-table");
+        container.innerHTML = "";
+
+        if (filteredData.length === 0) {
+          container.innerHTML =
+            '<div class="info-message">선택한 조건에 맞는 문제가 없습니다.</div>';
+          return;
+        }
+
+        const table = document.createElement("table");
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+
+        const headers = [
+          "Chapter",
+          "Theme",
+          "문제 번호",
+          "분류 이유",
+          "Priority",
+        ];
+        headers.forEach((headerText) => {
+          const th = document.createElement("th");
+          th.textContent = headerText;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        filteredData.forEach((item) => {
+          const row = document.createElement("tr");
+
+          const chapterTd = document.createElement("td");
+          chapterTd.textContent = item.chapter;
+          row.appendChild(chapterTd);
+
+          const themeTd = document.createElement("td");
+          themeTd.textContent = item.theme;
+          row.appendChild(themeTd);
+
+          const problemTd = document.createElement("td");
+          problemTd.textContent = item.problemNumber;
+          row.appendChild(problemTd);
+
+          const reasonTd = document.createElement("td");
+          reasonTd.textContent = item.reason;
+          row.appendChild(reasonTd);
+
+          const priorityTd = document.createElement("td");
+          priorityTd.textContent = item.priority;
+          row.appendChild(priorityTd);
+
+          if (item.priority === "1") {
+            row.classList.add("priority-1");
+          } else if (item.priority === "2") {
+            row.classList.add("priority-2");
+          } else if (item.priority === "3") {
+            row.classList.add("priority-3");
+          }
+
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        container.appendChild(table);
+        currentTable = table;
+      }
+
+      function updateFilterCount() {
+        const countElement = document.getElementById("filter-count");
+        countElement.textContent = `총 ${filteredData.length}개 문제 표시`;
+      }
+
+      function clearFilters() {
+        document.getElementById("priority-filter").value = "";
+        document.getElementById("chapter-filter").value = "";
+        document.getElementById("theme-filter").value = "";
+        filteredData = [...allCsvData];
+        displayFilteredTable();
+        updateFilterCount();
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
         const csvFile = urlParams.get("csv");
 
         if (csvFile) {
-          fetch(csvFile)
-            .then((response) => response.text())
-            .then((data) => {
-              const table = document.createElement("table");
-              const rows = data.trim().split("\n");
+          loadCsvData(csvFile)
+            .then(({ data }) => {
+              allCsvData = data;
 
-              const thead = document.createElement("thead");
-              const headerRow = document.createElement("tr");
-              const headers = rows[0].split(",");
-              headers.forEach((headerText) => {
-                const th = document.createElement("th");
-                th.textContent = headerText.replace(/"/g, "");
-                headerRow.appendChild(th);
-              });
-              thead.appendChild(headerRow);
-              table.appendChild(thead);
+              if (csvFile === "all.csv") {
+                const filterControls =
+                  document.querySelector(".filter-controls");
+                if (filterControls) {
+                  filterControls.style.display = "block";
+                }
+                populateFilterOptions(allCsvData);
+                applyFilters();
+              } else {
+                const filterControls =
+                  document.querySelector(".filter-controls");
+                if (filterControls) {
+                  filterControls.style.display = "none";
+                }
 
-              const tbody = document.createElement("tbody");
-              for (let i = 1; i < rows.length; i++) {
-                if (!rows[i]) continue;
-                const row = document.createElement("tr");
-                const cells = parseCsvRow(rows[i]);
-                cells.forEach((cellText) => {
-                  const td = document.createElement("td");
-                  td.textContent = cellText;
-                  row.appendChild(td);
+                const table = document.createElement("table");
+                const thead = document.createElement("thead");
+                const headerRow = document.createElement("tr");
+                const headers = [
+                  "Chapter",
+                  "Theme",
+                  "문제 번호",
+                  "분류 이유",
+                  "Priority",
+                ];
+                headers.forEach((headerText) => {
+                  const th = document.createElement("th");
+                  th.textContent = headerText;
+                  headerRow.appendChild(th);
                 });
-                tbody.appendChild(row);
-              }
-              table.appendChild(tbody);
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
 
-              const container = document.getElementById("csv-table");
-              container.innerHTML = "";
-              container.appendChild(table);
+                const tbody = document.createElement("tbody");
+                data.forEach((item) => {
+                  const row = document.createElement("tr");
+
+                  const chapterTd = document.createElement("td");
+                  chapterTd.textContent = item.chapter;
+                  row.appendChild(chapterTd);
+
+                  const themeTd = document.createElement("td");
+                  themeTd.textContent = item.theme;
+                  row.appendChild(themeTd);
+
+                  const problemTd = document.createElement("td");
+                  problemTd.textContent = item.problemNumber;
+                  row.appendChild(problemTd);
+
+                  const reasonTd = document.createElement("td");
+                  reasonTd.textContent = item.reason;
+                  row.appendChild(reasonTd);
+
+                  const priorityTd = document.createElement("td");
+                  priorityTd.textContent = item.priority;
+                  row.appendChild(priorityTd);
+
+                  if (item.priority === "1") {
+                    row.classList.add("priority-1");
+                  } else if (item.priority === "2") {
+                    row.classList.add("priority-2");
+                  } else if (item.priority === "3") {
+                    row.classList.add("priority-3");
+                  }
+
+                  tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+
+                const container = document.getElementById("csv-table");
+                container.innerHTML = "";
+                container.appendChild(table);
+              }
             })
             .catch((error) => {
-              console.error("Error fetching CSV file:", error);
+              console.error("Error loading CSV file:", error);
               document.getElementById(
                 "csv-table"
               ).innerHTML = `<div class="error-message">Error loading ${csvFile}. Please make sure the file exists and is in the same directory as this HTML file.</div>`;
@@ -327,6 +707,18 @@
             '<div class="info-message">볼 CSV 파일을 지정하세요. 예를 들어 URL에 "?csv=1.csv"를 추가합니다.</div>';
 
           loadStatistics();
+        }
+
+        document
+          .getElementById("apply-filter")
+          .addEventListener("click", applyFilters);
+        document
+          .getElementById("clear-filter")
+          .addEventListener("click", clearFilters);
+
+        const filterControls = document.querySelector(".filter-controls");
+        if (filterControls) {
+          filterControls.style.display = "none";
         }
       });
 
