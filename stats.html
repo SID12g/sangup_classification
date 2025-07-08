@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>상업경제 기출 DB - 통계</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+          "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+        background-color: #ffffff;
+        color: #374151;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      .header {
+        padding: 64px 0 48px 0;
+        text-align: center;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 8px;
+        letter-spacing: -0.025em;
+      }
+
+      .nav-links {
+        padding: 32px 0;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links a {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 20px;
+        background-color: #ffffff;
+        color: #374151;
+        text-decoration: none;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      }
+
+      .nav-links a:hover {
+        background-color: #f9fafb;
+        border-color: #9ca3af;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .nav-links a.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+      }
+
+      .content {
+        padding: 48px 0;
+      }
+
+      .error-message {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 16px 20px;
+        border-radius: 8px;
+        text-align: center;
+        margin: 24px 0;
+        font-size: 0.875rem;
+      }
+
+      .github-link {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+      }
+
+      .github-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .github-btn:hover {
+        background: rgba(0, 0, 0, 0.9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .github-icon {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 16px;
+        }
+
+        .header {
+          padding: 48px 0 32px 0;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .nav-links {
+          padding: 24px 0;
+          gap: 12px;
+        }
+
+        .nav-links a {
+          padding: 10px 16px;
+          font-size: 0.8rem;
+        }
+
+        .content {
+          padding: 32px 0;
+        }
+
+        .github-link {
+          top: 16px;
+          right: 16px;
+        }
+
+        .github-btn {
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+
+        .github-icon {
+          width: 14px;
+          height: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <a
+          style="text-decoration: none; color: inherit"
+          href="/sangup_classification"
+          ><h1>상업경제 기출 DB</h1></a
+        >
+      </div>
+
+      <div class="nav-links">
+        <a href="index.html">데이터 보기</a>
+        <a href="stats.html" class="active">통계 정보</a>
+      </div>
+
+      <div class="content">
+        <div id="statistics">
+          <h2
+            style="
+              margin-bottom: 24px;
+              color: #111827;
+              font-size: 1.5rem;
+              font-weight: 600;
+            "
+          >
+            통계 정보
+          </h2>
+          <div id="stats-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="github-link">
+      <a
+        href="https://github.com/SID12g/sangup_classification"
+        target="_blank"
+        class="github-btn"
+        title="GitHub 저장소"
+      >
+        <svg class="github-icon" viewBox="0 0 24 24">
+          <path
+            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+          />
+        </svg>
+        GitHub
+      </a>
+    </div>
+
+    <script>
+      function parseCsvRow(rowString) {
+        const cells = [];
+        let currentPos = 0;
+
+        const firstComma = rowString.indexOf(",");
+        if (firstComma === -1) {
+          return [rowString];
+        }
+        cells.push(rowString.substring(0, firstComma));
+        currentPos = firstComma + 1;
+
+        while (currentPos < rowString.length) {
+          if (rowString[currentPos] === '"') {
+            let endQuote = -1;
+            let searchPos = currentPos + 1;
+            while (endQuote === -1) {
+              const nextQuote = rowString.indexOf('"', searchPos);
+              if (nextQuote === -1) {
+                endQuote = rowString.length;
+              } else if (rowString[nextQuote + 1] === '"') {
+                searchPos = nextQuote + 2;
+              } else {
+                endQuote = nextQuote;
+              }
+            }
+            cells.push(
+              rowString.substring(currentPos + 1, endQuote).replace(/""/g, '"')
+            );
+            currentPos = endQuote + 2;
+          } else {
+            const nextComma = rowString.indexOf(",", currentPos);
+            if (nextComma === -1) {
+              cells.push(rowString.substring(currentPos));
+              currentPos = rowString.length;
+            } else {
+              cells.push(rowString.substring(currentPos, nextComma));
+              currentPos = nextComma + 1;
+            }
+          }
+        }
+        return cells;
+      }
+
+      function loadStatistics() {
+        Promise.all([
+          fetch("all.csv").then((response) => response.text()),
+          fetch("1.csv").then((response) => response.text()),
+          fetch("2.csv").then((response) => response.text()),
+          fetch("3.csv").then((response) => response.text()),
+          fetch("4.csv").then((response) => response.text()),
+        ])
+          .then(([allData, csv1Data, csv2Data, csv3Data, csv4Data]) => {
+            const stats = analyzeData(allData);
+            displayStatistics(stats);
+
+            const validationResult = validateCsvFiles(allData, [
+              csv1Data,
+              csv2Data,
+              csv3Data,
+              csv4Data,
+            ]);
+            displayValidationResult(validationResult);
+          })
+          .catch((error) => {
+            console.error("Error loading statistics:", error);
+            document.getElementById("stats-content").innerHTML =
+              '<div class="error-message">통계 정보를 불러올 수 없습니다.</div>';
+          });
+      }
+
+      function analyzeData(csvData) {
+        const rows = csvData.trim().split("\n");
+        const headers = rows[0].split(",");
+        const data = rows.slice(1).map((row, index) => {
+          try {
+            const cells = parseCsvRow(row);
+            return {
+              chapter: cells[0]?.replace(/"/g, ""),
+              theme: cells[1]?.replace(/"/g, ""),
+              problemNumber: cells[2]?.replace(/"/g, ""),
+              reason: cells[3]?.replace(/"/g, ""),
+            };
+          } catch (error) {
+            console.log(
+              "Error parsing row in analyzeData:",
+              index + 2,
+              row,
+              error
+            );
+            return {
+              chapter: "",
+              theme: "",
+              problemNumber: "",
+              reason: "",
+            };
+          }
+        });
+
+        const chapterStats = {};
+        const themeStats = {};
+        const yearStats = {};
+        const totalProblems = data.length;
+
+        data.forEach((item) => {
+          if (item.chapter && item.theme) {
+            const chapter = item.chapter.trim();
+            const theme = item.theme.trim();
+
+            chapterStats[chapter] = (chapterStats[chapter] || 0) + 1;
+
+            const combinedTheme = `${chapter} - ${theme}`;
+            themeStats[combinedTheme] = (themeStats[combinedTheme] || 0) + 1;
+
+            if (item.problemNumber) {
+              const year = item.problemNumber.split(".")[0];
+              if (year && year.length === 4) {
+                yearStats[year] = (yearStats[year] || 0) + 1;
+              }
+            }
+          }
+        });
+
+        return {
+          totalProblems,
+          chapterStats,
+          themeStats,
+          yearStats,
+        };
+      }
+
+      function validateCsvFiles(allData, individualCsvData) {
+        const allRows = allData.trim().split("\n").slice(1);
+        const allProblems = new Set();
+
+        console.log("All CSV rows count:", allRows.length);
+
+        allRows.forEach((row, index) => {
+          if (row.trim()) {
+            try {
+              const cells = parseCsvRow(row);
+              const problemNumber = cells[2]?.replace(/"/g, "").trim();
+              if (problemNumber) {
+                allProblems.add(problemNumber);
+              } else {
+                console.log("Row without problem number:", index + 2, row);
+                console.log("Parsed cells:", cells);
+              }
+            } catch (error) {
+              console.log("Error parsing row:", index + 2, row, error);
+            }
+          }
+        });
+
+        console.log("All problems count:", allProblems.size);
+        console.log("All problems:", Array.from(allProblems).sort());
+
+        const individualProblems = new Set();
+        const missingInAll = [];
+        const extraInAll = [];
+        const csvFileStats = [];
+
+        individualCsvData.forEach((csvData, index) => {
+          const csvNumber = index + 1;
+          const rows = csvData.trim().split("\n").slice(1);
+          const csvProblems = [];
+
+          rows.forEach((row) => {
+            if (row.trim()) {
+              try {
+                const cells = parseCsvRow(row);
+                const problemNumber = cells[2]?.replace(/"/g, "").trim();
+                if (problemNumber) {
+                  csvProblems.push(problemNumber);
+                  individualProblems.add(problemNumber);
+                }
+              } catch (error) {
+                console.log(
+                  "Error parsing individual CSV row:",
+                  csvNumber,
+                  row,
+                  error
+                );
+              }
+            }
+          });
+
+          csvFileStats.push({
+            file: `${csvNumber}.csv`,
+            count: csvProblems.length,
+            problems: csvProblems,
+          });
+        });
+
+        console.log("Individual problems count:", individualProblems.size);
+        console.log(
+          "Individual problems:",
+          Array.from(individualProblems).sort()
+        );
+
+        allProblems.forEach((problem) => {
+          if (!individualProblems.has(problem)) {
+            extraInAll.push(problem);
+          }
+        });
+
+        individualProblems.forEach((problem) => {
+          if (!allProblems.has(problem)) {
+            missingInAll.push(problem);
+          }
+        });
+
+        return {
+          allCount: allProblems.size,
+          individualCount: individualProblems.size,
+          missingInAll,
+          extraInAll,
+          csvFileStats,
+          isValid: missingInAll.length === 0 && extraInAll.length === 0,
+        };
+      }
+
+      function displayValidationResult(validationResult) {
+        const statsContent = document.getElementById("stats-content");
+
+        let validationHtml = `
+          <div style="margin-top: 48px;">
+            <h2 style="margin-bottom: 24px; color: #111827; font-size: 1.5rem; font-weight: 600;">
+              CSV 파일 검증 결과
+            </h2>
+        `;
+
+        if (validationResult.isValid) {
+          validationHtml += `
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px;">
+                <span style="font-size: 1.2rem;">✓</span>
+                검증 성공
+              </div>
+              <p>all.csv 파일이 개별 CSV 파일들의 합계와 일치합니다.</p>
+            </div>
+          `;
+        } else {
+          validationHtml += `
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px;">
+                <span style="font-size: 1.2rem;">✗</span>
+                검증 실패
+              </div>
+              <p>all.csv 파일과 개별 CSV 파일들 간에 불일치가 발견되었습니다.</p>
+            </div>
+          `;
+        }
+
+        validationHtml += `
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
+              <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">all.csv 문제 수</h3>
+              <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${validationResult.allCount}문제</div>
+            </div>
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
+              <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">개별 CSV 합계</h3>
+              <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${validationResult.individualCount}문제</div>
+            </div>
+          </div>
+        `;
+
+        validationHtml += `
+          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+            <div style="background: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+              <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600;">개별 CSV 파일 통계</h3>
+            </div>
+        `;
+
+        validationResult.csvFileStats.forEach((stat) => {
+          validationHtml += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
+              <span style="color: #374151; font-weight: 500;">${stat.file}</span>
+              <span style="color: #1f2937; font-weight: 600;">${stat.count}문제</span>
+            </div>
+          `;
+        });
+
+        validationHtml += `</div>`;
+
+        if (validationResult.missingInAll.length > 0) {
+          validationHtml += `
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+              <div style="background: #fef2f2; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+                <h3 style="color: #991b1b; font-size: 1.25rem; font-weight: 600;">all.csv에 누락된 문제 (${validationResult.missingInAll.length}개)</h3>
+              </div>
+          `;
+
+          validationResult.missingInAll.forEach((problem) => {
+            validationHtml += `
+              <div style="padding: 8px 16px; border-bottom: 1px solid #f3f4f6;">
+                <span style="color: #991b1b;">${problem}</span>
+              </div>
+            `;
+          });
+
+          validationHtml += `</div>`;
+        }
+
+        if (validationResult.extraInAll.length > 0) {
+          validationHtml += `
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+              <div style="background: #fef2f2; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+                <h3 style="color: #991b1b; font-size: 1.25rem; font-weight: 600;">all.csv에만 있는 문제 (${validationResult.extraInAll.length}개)</h3>
+              </div>
+          `;
+
+          validationResult.extraInAll.forEach((problem) => {
+            validationHtml += `
+              <div style="padding: 8px 16px; border-bottom: 1px solid #f3f4f6;">
+                <span style="color: #991b1b;">${problem}</span>
+              </div>
+            `;
+          });
+
+          validationHtml += `</div>`;
+        }
+
+        validationHtml += `</div>`;
+
+        statsContent.innerHTML += validationHtml;
+      }
+
+      function displayStatistics(stats) {
+        const statsContent = document.getElementById("stats-content");
+
+        let html = `
+              <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                  <div class="stat-card" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+                      <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">총 문제 수</h3>
+                      <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${
+                        stats.totalProblems
+                      }문제</div>
+                  </div>
+                  
+                  <div class="stat-card" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+                      <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">챕터 수</h3>
+                      <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${
+                        Object.keys(stats.chapterStats).length
+                      }개</div>
+                  </div>
+                  
+                  <div class="stat-card" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
+                      <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">테마 수</h3>
+                      <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${
+                        Object.keys(stats.themeStats).length
+                      }개</div>
+                  </div>
+              </div>
+          `;
+
+        html += `
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 32px;">
+                  <div class="stat-section">
+                      <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600; margin-bottom: 16px;">챕터별 문제 수</h3>
+                      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+          `;
+
+        Object.entries(stats.chapterStats)
+          .sort((a, b) => b[1] - a[1])
+          .forEach(([chapter, count]) => {
+            const percentage = ((count / stats.totalProblems) * 100).toFixed(1);
+            html += `
+                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
+                          <span style="color: #374151; font-weight: 500;">${chapter}</span>
+                          <div style="display: flex; align-items: center; gap: 12px;">
+                              <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
+                              <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
+                          </div>
+                      </div>
+                  `;
+          });
+
+        html += `
+                      </div>
+                  </div>
+                  
+                  <div class="stat-section">
+                      <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600; margin-bottom: 16px;">연도별 문제 수</h3>
+                      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+          `;
+
+        Object.entries(stats.yearStats)
+          .sort((a, b) => b[0] - a[0])
+          .forEach(([year, count]) => {
+            const percentage = ((count / stats.totalProblems) * 100).toFixed(1);
+            html += `
+                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
+                          <span style="color: #374151; font-weight: 500;">${year}년</span>
+                          <div style="display: flex; align-items: center; gap: 12px;">
+                              <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
+                              <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
+                          </div>
+                      </div>
+                  `;
+          });
+
+        html += `
+                      </div>
+                  </div>
+              </div>
+          `;
+
+        const chapterThemeStats = {};
+        Object.entries(stats.themeStats).forEach(([theme, count]) => {
+          console.log("Theme:", theme, "Count:", count);
+          const chapterMatch = theme.match(/Chapter (\d+):/);
+          if (chapterMatch) {
+            const chapterNum = chapterMatch[1];
+            if (!chapterThemeStats[chapterNum]) {
+              chapterThemeStats[chapterNum] = [];
+            }
+            chapterThemeStats[chapterNum].push({ theme, count });
+          }
+        });
+
+        console.log("Chapter Theme Stats:", chapterThemeStats);
+
+        html += `
+            <div style="margin-top: 32px;">
+                <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600; margin-bottom: 16px;">테마별 문제 수</h3>
+        `;
+
+        if (Object.keys(chapterThemeStats).length === 0) {
+          html += `
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; text-align: center;">
+              <p style="color: #6b7280;">테마 데이터를 찾을 수 없습니다. 테마 형식을 확인해주세요.</p>
+            </div>
+          `;
+        } else {
+          Object.keys(chapterThemeStats)
+            .sort((a, b) => parseInt(a) - parseInt(b))
+            .forEach((chapterNum) => {
+              const themes = chapterThemeStats[chapterNum];
+              const chapterTotal = themes.reduce(
+                (sum, item) => sum + item.count,
+                0
+              );
+              const chapterPercentage = (
+                (chapterTotal / stats.totalProblems) *
+                100
+              ).toFixed(1);
+
+              html += `
+                    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 16px;">
+                        <div style="background: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #374151; font-weight: 600; font-size: 1.1rem;">Chapter ${chapterNum}</span>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="color: #6b7280; font-size: 0.875rem;">${chapterPercentage}%</span>
+                                    <span style="color: #1f2937; font-weight: 600;">${chapterTotal}문제</span>
+                                </div>
+                            </div>
+                        </div>
+                `;
+
+              themes
+                .sort((a, b) => {
+                  const themeAMatch = a.theme.match(/Theme (\d+)/);
+                  const themeBMatch = b.theme.match(/Theme (\d+)/);
+                  if (themeAMatch && themeBMatch) {
+                    return parseInt(themeAMatch[1]) - parseInt(themeBMatch[1]);
+                  }
+                  return a.theme.localeCompare(b.theme);
+                })
+                .forEach(({ theme, count }) => {
+                  const percentage = (
+                    (count / stats.totalProblems) *
+                    100
+                  ).toFixed(1);
+                  const themeMatch = theme.match(/Theme (\d+):\s*(.+)/);
+                  if (themeMatch) {
+                    const themeNum = themeMatch[1];
+                    const themeName = themeMatch[2];
+                    html += `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
+                                    <span style="color: #374151; font-weight: 500; padding-left: 16px;">Theme ${themeNum}: ${themeName}</span>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
+                                        <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
+                                    </div>
+                                </div>
+                            `;
+                  } else {
+                    html += `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
+                                    <span style="color: #374151; font-weight: 500; padding-left: 16px;">${theme}</span>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
+                                        <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
+                                    </div>
+                                </div>
+                            `;
+                  }
+                });
+
+              html += `</div>`;
+            });
+        }
+
+        html += `</div>`;
+
+        statsContent.innerHTML = html;
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadStatistics();
+      });
+    </script>
+  </body>
+  <footer style="text-align: center; padding: 20px; font-size: 12px">
+    Copyright ⓒ 2025
+    <a href="https://sid12g.dev" style="color: #000000; text-decoration: none"
+      >sid12g</a
+    >
+    All rights reserved.
+  </footer>
+</html>

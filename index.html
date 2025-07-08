@@ -41,15 +41,15 @@
         letter-spacing: -0.025em;
       }
 
-      .csv-links {
-        padding: 48px 0;
+      .nav-links {
+        padding: 32px 0;
         display: flex;
         justify-content: center;
         gap: 16px;
         flex-wrap: wrap;
       }
 
-      .csv-links a {
+      .nav-links a {
         display: inline-flex;
         align-items: center;
         padding: 12px 20px;
@@ -64,12 +64,18 @@
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       }
 
-      .csv-links a:hover {
+      .nav-links a:hover {
         background-color: #f9fafb;
         border-color: #9ca3af;
         transform: translateY(-1px);
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
           0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .nav-links a.active {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
       }
 
       .content {
@@ -281,12 +287,12 @@
           font-size: 2rem;
         }
 
-        .csv-links {
-          padding: 32px 0;
+        .nav-links {
+          padding: 24px 0;
           gap: 12px;
         }
 
-        .csv-links a {
+        .nav-links a {
           padding: 10px 16px;
           font-size: 0.8rem;
         }
@@ -339,12 +345,9 @@
         >
       </div>
 
-      <div class="csv-links">
-        <a href="?csv=1.csv">Chapter 01</a>
-        <a href="?csv=2.csv">Chapter 02</a>
-        <a href="?csv=3.csv">Chapter 03</a>
-        <a href="?csv=4.csv">Chapter 04</a>
-        <a href="?csv=all.csv">All</a>
+      <div class="nav-links">
+        <a href="index.html" class="active">데이터 보기</a>
+        <a href="stats.html">통계 정보</a>
       </div>
 
       <div
@@ -500,20 +503,6 @@
 
       <div class="content">
         <div id="csv-table"></div>
-
-        <div id="statistics" style="margin-top: 48px">
-          <h2
-            style="
-              margin-bottom: 24px;
-              color: #111827;
-              font-size: 1.5rem;
-              font-weight: 600;
-            "
-          >
-            통계 정보
-          </h2>
-          <div id="stats-content"></div>
-        </div>
       </div>
     </div>
 
@@ -648,6 +637,44 @@
           option.textContent = theme;
           themeFilter.appendChild(option);
         });
+
+        chapterFilter.addEventListener("change", function () {
+          updateThemeOptions(data, this.value);
+        });
+      }
+
+      function updateThemeOptions(data, selectedChapter) {
+        const themeFilter = document.getElementById("theme-filter");
+        themeFilter.innerHTML = '<option value="">모든 테마</option>';
+
+        if (selectedChapter) {
+          const chapterThemes = data
+            .filter((item) => item.chapter === selectedChapter)
+            .map((item) => item.theme)
+            .filter(Boolean);
+
+          const uniqueThemes = [...new Set(chapterThemes)];
+
+          uniqueThemes.forEach((theme) => {
+            const option = document.createElement("option");
+            option.value = theme;
+            option.textContent = theme;
+            themeFilter.appendChild(option);
+          });
+        } else {
+          const allThemes = [
+            ...new Set(data.map((item) => item.theme).filter(Boolean)),
+          ];
+
+          allThemes.forEach((theme) => {
+            const option = document.createElement("option");
+            option.value = theme;
+            option.textContent = theme;
+            themeFilter.appendChild(option);
+          });
+        }
+
+        themeFilter.value = "";
       }
 
       function applyFilters() {
@@ -752,105 +779,18 @@
       }
 
       document.addEventListener("DOMContentLoaded", () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const csvFile = urlParams.get("csv");
-
-        if (csvFile) {
-          const statsSection = document.getElementById("statistics");
-          if (statsSection) {
-            statsSection.style.display = "none";
-          }
-
-          loadCsvData(csvFile)
-            .then(({ data }) => {
-              allCsvData = data;
-
-              if (csvFile === "all.csv") {
-                const filterControls =
-                  document.querySelector(".filter-controls");
-                if (filterControls) {
-                  filterControls.style.display = "block";
-                }
-                populateFilterOptions(allCsvData);
-                applyFilters();
-              } else {
-                const filterControls =
-                  document.querySelector(".filter-controls");
-                if (filterControls) {
-                  filterControls.style.display = "none";
-                }
-
-                const table = document.createElement("table");
-                const thead = document.createElement("thead");
-                const headerRow = document.createElement("tr");
-                const headers = [
-                  "Chapter",
-                  "Theme",
-                  "문제 번호",
-                  "분류 이유",
-                  "Priority",
-                ];
-                headers.forEach((headerText) => {
-                  const th = document.createElement("th");
-                  th.textContent = headerText;
-                  headerRow.appendChild(th);
-                });
-                thead.appendChild(headerRow);
-                table.appendChild(thead);
-
-                const tbody = document.createElement("tbody");
-                data.forEach((item) => {
-                  const row = document.createElement("tr");
-
-                  const chapterTd = document.createElement("td");
-                  chapterTd.textContent = item.chapter;
-                  row.appendChild(chapterTd);
-
-                  const themeTd = document.createElement("td");
-                  themeTd.textContent = item.theme;
-                  row.appendChild(themeTd);
-
-                  const problemTd = document.createElement("td");
-                  problemTd.textContent = item.problemNumber;
-                  row.appendChild(problemTd);
-
-                  const reasonTd = document.createElement("td");
-                  reasonTd.textContent = item.reason;
-                  row.appendChild(reasonTd);
-
-                  const priorityTd = document.createElement("td");
-                  priorityTd.textContent = item.priority;
-                  row.appendChild(priorityTd);
-
-                  if (item.priority === "1") {
-                    row.classList.add("priority-1");
-                  } else if (item.priority === "2") {
-                    row.classList.add("priority-2");
-                  } else if (item.priority === "3") {
-                    row.classList.add("priority-3");
-                  }
-
-                  tbody.appendChild(row);
-                });
-                table.appendChild(tbody);
-
-                const container = document.getElementById("csv-table");
-                container.innerHTML = "";
-                container.appendChild(table);
-              }
-            })
-            .catch((error) => {
-              console.error("Error loading CSV file:", error);
-              document.getElementById(
-                "csv-table"
-              ).innerHTML = `<div class="error-message">Error loading ${csvFile}. Please make sure the file exists and is in the same directory as this HTML file.</div>`;
-            });
-        } else {
-          document.getElementById("csv-table").innerHTML =
-            '<div class="info-message">볼 CSV 파일을 지정하세요. 예를 들어 URL에 "?csv=1.csv"를 추가합니다.</div>';
-
-          loadStatistics();
-        }
+        loadCsvData("all.csv")
+          .then(({ data }) => {
+            allCsvData = data;
+            populateFilterOptions(allCsvData);
+            applyFilters();
+          })
+          .catch((error) => {
+            console.error("Error loading CSV file:", error);
+            document.getElementById(
+              "csv-table"
+            ).innerHTML = `<div class="error-message">Error loading all.csv. Please make sure the file exists and is in the same directory as this HTML file.</div>`;
+          });
 
         document
           .getElementById("apply-filter")
@@ -874,478 +814,7 @@
               behavior: "smooth",
             });
           });
-
-        const filterControls = document.querySelector(".filter-controls");
-        if (filterControls) {
-          filterControls.style.display = "none";
-        }
       });
-
-      function loadStatistics() {
-        Promise.all([
-          fetch("all.csv").then((response) => response.text()),
-          fetch("1.csv").then((response) => response.text()),
-          fetch("2.csv").then((response) => response.text()),
-          fetch("3.csv").then((response) => response.text()),
-          fetch("4.csv").then((response) => response.text()),
-        ])
-          .then(([allData, csv1Data, csv2Data, csv3Data, csv4Data]) => {
-            const stats = analyzeData(allData);
-            displayStatistics(stats);
-
-            const validationResult = validateCsvFiles(allData, [
-              csv1Data,
-              csv2Data,
-              csv3Data,
-              csv4Data,
-            ]);
-            displayValidationResult(validationResult);
-          })
-          .catch((error) => {
-            console.error("Error loading statistics:", error);
-            document.getElementById("stats-content").innerHTML =
-              '<div class="error-message">통계 정보를 불러올 수 없습니다.</div>';
-          });
-      }
-
-      function analyzeData(csvData) {
-        const rows = csvData.trim().split("\n");
-        const headers = rows[0].split(",");
-        const data = rows.slice(1).map((row, index) => {
-          try {
-            const cells = parseCsvRow(row);
-            return {
-              chapter: cells[0]?.replace(/"/g, ""),
-              theme: cells[1]?.replace(/"/g, ""),
-              problemNumber: cells[2]?.replace(/"/g, ""),
-              reason: cells[3]?.replace(/"/g, ""),
-            };
-          } catch (error) {
-            console.log(
-              "Error parsing row in analyzeData:",
-              index + 2,
-              row,
-              error
-            );
-            return {
-              chapter: "",
-              theme: "",
-              problemNumber: "",
-              reason: "",
-            };
-          }
-        });
-
-        const chapterStats = {};
-        const themeStats = {};
-        const yearStats = {};
-        const totalProblems = data.length;
-
-        data.forEach((item) => {
-          if (item.chapter && item.theme) {
-            const chapter = item.chapter.trim();
-            const theme = item.theme.trim();
-
-            chapterStats[chapter] = (chapterStats[chapter] || 0) + 1;
-
-            const combinedTheme = `${chapter} - ${theme}`;
-            themeStats[combinedTheme] = (themeStats[combinedTheme] || 0) + 1;
-
-            if (item.problemNumber) {
-              const year = item.problemNumber.split(".")[0];
-              if (year && year.length === 4) {
-                yearStats[year] = (yearStats[year] || 0) + 1;
-              }
-            }
-          }
-        });
-
-        return {
-          totalProblems,
-          chapterStats,
-          themeStats,
-          yearStats,
-        };
-      }
-
-      function validateCsvFiles(allData, individualCsvData) {
-        const allRows = allData.trim().split("\n").slice(1);
-        const allProblems = new Set();
-
-        console.log("All CSV rows count:", allRows.length);
-
-        allRows.forEach((row, index) => {
-          if (row.trim()) {
-            try {
-              const cells = parseCsvRow(row);
-              const problemNumber = cells[2]?.replace(/"/g, "").trim();
-              if (problemNumber) {
-                allProblems.add(problemNumber);
-              } else {
-                console.log("Row without problem number:", index + 2, row);
-                console.log("Parsed cells:", cells);
-              }
-            } catch (error) {
-              console.log("Error parsing row:", index + 2, row, error);
-            }
-          }
-        });
-
-        console.log("All problems count:", allProblems.size);
-        console.log("All problems:", Array.from(allProblems).sort());
-
-        const individualProblems = new Set();
-        const missingInAll = [];
-        const extraInAll = [];
-        const csvFileStats = [];
-
-        individualCsvData.forEach((csvData, index) => {
-          const csvNumber = index + 1;
-          const rows = csvData.trim().split("\n").slice(1);
-          const csvProblems = [];
-
-          rows.forEach((row) => {
-            if (row.trim()) {
-              try {
-                const cells = parseCsvRow(row);
-                const problemNumber = cells[2]?.replace(/"/g, "").trim();
-                if (problemNumber) {
-                  csvProblems.push(problemNumber);
-                  individualProblems.add(problemNumber);
-                }
-              } catch (error) {
-                console.log(
-                  "Error parsing individual CSV row:",
-                  csvNumber,
-                  row,
-                  error
-                );
-              }
-            }
-          });
-
-          csvFileStats.push({
-            file: `${csvNumber}.csv`,
-            count: csvProblems.length,
-            problems: csvProblems,
-          });
-        });
-
-        console.log("Individual problems count:", individualProblems.size);
-        console.log(
-          "Individual problems:",
-          Array.from(individualProblems).sort()
-        );
-
-        allProblems.forEach((problem) => {
-          if (!individualProblems.has(problem)) {
-            extraInAll.push(problem);
-          }
-        });
-
-        individualProblems.forEach((problem) => {
-          if (!allProblems.has(problem)) {
-            missingInAll.push(problem);
-          }
-        });
-
-        return {
-          allCount: allProblems.size,
-          individualCount: individualProblems.size,
-          missingInAll,
-          extraInAll,
-          csvFileStats,
-          isValid: missingInAll.length === 0 && extraInAll.length === 0,
-        };
-      }
-
-      function displayValidationResult(validationResult) {
-        const statsContent = document.getElementById("stats-content");
-
-        let validationHtml = `
-          <div style="margin-top: 48px;">
-            <h2 style="margin-bottom: 24px; color: #111827; font-size: 1.5rem; font-weight: 600;">
-              CSV 파일 검증 결과
-            </h2>
-        `;
-
-        if (validationResult.isValid) {
-          validationHtml += `
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px;">
-              <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px;">
-                <span style="font-size: 1.2rem;">✓</span>
-                검증 성공
-              </div>
-              <p>all.csv 파일이 개별 CSV 파일들의 합계와 일치합니다.</p>
-            </div>
-          `;
-        } else {
-          validationHtml += `
-            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 16px 20px; border-radius: 8px; margin-bottom: 24px;">
-              <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 8px;">
-                <span style="font-size: 1.2rem;">✗</span>
-                검증 실패
-              </div>
-              <p>all.csv 파일과 개별 CSV 파일들 간에 불일치가 발견되었습니다.</p>
-            </div>
-          `;
-        }
-
-        validationHtml += `
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
-              <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">all.csv 문제 수</h3>
-              <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${validationResult.allCount}문제</div>
-            </div>
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px;">
-              <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">개별 CSV 합계</h3>
-              <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${validationResult.individualCount}문제</div>
-            </div>
-          </div>
-        `;
-
-        validationHtml += `
-          <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
-            <div style="background: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-              <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600;">개별 CSV 파일 통계</h3>
-            </div>
-        `;
-
-        validationResult.csvFileStats.forEach((stat) => {
-          validationHtml += `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
-              <span style="color: #374151; font-weight: 500;">${stat.file}</span>
-              <span style="color: #1f2937; font-weight: 600;">${stat.count}문제</span>
-            </div>
-          `;
-        });
-
-        validationHtml += `</div>`;
-
-        if (validationResult.missingInAll.length > 0) {
-          validationHtml += `
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
-              <div style="background: #fef2f2; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-                <h3 style="color: #991b1b; font-size: 1.25rem; font-weight: 600;">all.csv에 누락된 문제 (${validationResult.missingInAll.length}개)</h3>
-              </div>
-          `;
-
-          validationResult.missingInAll.forEach((problem) => {
-            validationHtml += `
-              <div style="padding: 8px 16px; border-bottom: 1px solid #f3f4f6;">
-                <span style="color: #991b1b;">${problem}</span>
-              </div>
-            `;
-          });
-
-          validationHtml += `</div>`;
-        }
-
-        if (validationResult.extraInAll.length > 0) {
-          validationHtml += `
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
-              <div style="background: #fef2f2; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-                <h3 style="color: #991b1b; font-size: 1.25rem; font-weight: 600;">all.csv에만 있는 문제 (${validationResult.extraInAll.length}개)</h3>
-              </div>
-          `;
-
-          validationResult.extraInAll.forEach((problem) => {
-            validationHtml += `
-              <div style="padding: 8px 16px; border-bottom: 1px solid #f3f4f6;">
-                <span style="color: #991b1b;">${problem}</span>
-              </div>
-            `;
-          });
-
-          validationHtml += `</div>`;
-        }
-
-        validationHtml += `</div>`;
-
-        statsContent.innerHTML += validationHtml;
-      }
-
-      function displayStatistics(stats) {
-        const statsContent = document.getElementById("stats-content");
-
-        let html = `
-              <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
-                  <div class="stat-card" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-                      <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">총 문제 수</h3>
-                      <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${
-                        stats.totalProblems
-                      }문제</div>
-                  </div>
-                  
-                  <div class="stat-card" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-                      <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">챕터 수</h3>
-                      <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${
-                        Object.keys(stats.chapterStats).length
-                      }개</div>
-                  </div>
-                  
-                  <div class="stat-card" style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);">
-                      <h3 style="color: #374151; font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">테마 수</h3>
-                      <div style="font-size: 2rem; font-weight: 700; color: #1f2937;">${
-                        Object.keys(stats.themeStats).length
-                      }개</div>
-                  </div>
-              </div>
-          `;
-
-        html += `
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 32px;">
-                  <div class="stat-section">
-                      <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600; margin-bottom: 16px;">챕터별 문제 수</h3>
-                      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-          `;
-
-        Object.entries(stats.chapterStats)
-          .sort((a, b) => b[1] - a[1])
-          .forEach(([chapter, count]) => {
-            const percentage = ((count / stats.totalProblems) * 100).toFixed(1);
-            html += `
-                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
-                          <span style="color: #374151; font-weight: 500;">${chapter}</span>
-                          <div style="display: flex; align-items: center; gap: 12px;">
-                              <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
-                              <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
-                          </div>
-                      </div>
-                  `;
-          });
-
-        html += `
-                      </div>
-                  </div>
-                  
-                  <div class="stat-section">
-                      <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600; margin-bottom: 16px;">연도별 문제 수</h3>
-                      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
-          `;
-
-        Object.entries(stats.yearStats)
-          .sort((a, b) => b[0] - a[0])
-          .forEach(([year, count]) => {
-            const percentage = ((count / stats.totalProblems) * 100).toFixed(1);
-            html += `
-                      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
-                          <span style="color: #374151; font-weight: 500;">${year}년</span>
-                          <div style="display: flex; align-items: center; gap: 12px;">
-                              <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
-                              <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
-                          </div>
-                      </div>
-                  `;
-          });
-
-        html += `
-                      </div>
-                  </div>
-              </div>
-          `;
-
-        const chapterThemeStats = {};
-        Object.entries(stats.themeStats).forEach(([theme, count]) => {
-          console.log("Theme:", theme, "Count:", count);
-          const chapterMatch = theme.match(/Chapter (\d+):/);
-          if (chapterMatch) {
-            const chapterNum = chapterMatch[1];
-            if (!chapterThemeStats[chapterNum]) {
-              chapterThemeStats[chapterNum] = [];
-            }
-            chapterThemeStats[chapterNum].push({ theme, count });
-          }
-        });
-
-        console.log("Chapter Theme Stats:", chapterThemeStats);
-
-        html += `
-            <div style="margin-top: 32px;">
-                <h3 style="color: #374151; font-size: 1.25rem; font-weight: 600; margin-bottom: 16px;">테마별 문제 수</h3>
-        `;
-
-        if (Object.keys(chapterThemeStats).length === 0) {
-          html += `
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; text-align: center;">
-              <p style="color: #6b7280;">테마 데이터를 찾을 수 없습니다. 테마 형식을 확인해주세요.</p>
-            </div>
-          `;
-        } else {
-          Object.keys(chapterThemeStats)
-            .sort((a, b) => parseInt(a) - parseInt(b))
-            .forEach((chapterNum) => {
-              const themes = chapterThemeStats[chapterNum];
-              const chapterTotal = themes.reduce(
-                (sum, item) => sum + item.count,
-                0
-              );
-              const chapterPercentage = (
-                (chapterTotal / stats.totalProblems) *
-                100
-              ).toFixed(1);
-
-              html += `
-                    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 16px;">
-                        <div style="background: #f9fafb; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: #374151; font-weight: 600; font-size: 1.1rem;">Chapter ${chapterNum}</span>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <span style="color: #6b7280; font-size: 0.875rem;">${chapterPercentage}%</span>
-                                    <span style="color: #1f2937; font-weight: 600;">${chapterTotal}문제</span>
-                                </div>
-                            </div>
-                        </div>
-                `;
-
-              themes
-                .sort((a, b) => {
-                  const themeAMatch = a.theme.match(/Theme (\d+)/);
-                  const themeBMatch = b.theme.match(/Theme (\d+)/);
-                  if (themeAMatch && themeBMatch) {
-                    return parseInt(themeAMatch[1]) - parseInt(themeBMatch[1]);
-                  }
-                  return a.theme.localeCompare(b.theme);
-                })
-                .forEach(({ theme, count }) => {
-                  const percentage = (
-                    (count / stats.totalProblems) *
-                    100
-                  ).toFixed(1);
-                  const themeMatch = theme.match(/Theme (\d+):\s*(.+)/);
-                  if (themeMatch) {
-                    const themeNum = themeMatch[1];
-                    const themeName = themeMatch[2];
-                    html += `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
-                                    <span style="color: #374151; font-weight: 500; padding-left: 16px;">Theme ${themeNum}: ${themeName}</span>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
-                                        <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
-                                    </div>
-                                </div>
-                            `;
-                  } else {
-                    html += `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f3f4f6;">
-                                    <span style="color: #374151; font-weight: 500; padding-left: 16px;">${theme}</span>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span style="color: #6b7280; font-size: 0.875rem;">${percentage}%</span>
-                                        <span style="color: #1f2937; font-weight: 600;">${count}문제</span>
-                                    </div>
-                                </div>
-                            `;
-                  }
-                });
-
-              html += `</div>`;
-            });
-        }
-
-        html += `</div>`;
-
-        statsContent.innerHTML = html;
-      }
     </script>
   </body>
   <footer style="text-align: center; padding: 20px; font-size: 12px">
